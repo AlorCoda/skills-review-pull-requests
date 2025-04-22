@@ -1,152 +1,164 @@
-<title>Tic Tac Toe</title>
-<meta charset="UTF-8" />
-
-<style>
-  body,
-  td,
-  input {
-    font-size: 24px;
-    line-height: 1.5;
-    text-align: center;
-    font-family: system-ui, sans-serif;
-  }
-  td {
-    height: 3rem;
-    width: 3rem;
-    text-align: center;
-  }
-  table {
-    margin: 5rem auto;
-  }
-  @media (prefers-color-scheme: dark) {
-    body,
-    input {
-      background: #222;
-      color: #ccc;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tic Tac Toe</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      font-size: 24px;
+      margin-top: 2rem;
     }
-  }
-</style>
-
-<h1>Tic Tac Toe</h1>
-
-<table>
-  <tr>
-    <td><input type="checkbox" /></td>
-    <td><input type="checkbox" /></td>
-    <td><input type="checkbox" /></td>
-  </tr>
-  <tr>
-    <td><input type="checkbox" /></td>
-    <td><input type="checkbox" /></td>
-    <td><input type="checkbox" /></td>
-  </tr>
-  <tr>
-    <td><input type="checkbox" /></td>
-    <td><input type="checkbox" /></td>
-    <td><input type="checkbox" /></td>
-  </tr>
-</table>
-
-<h2 hidden>Game over, refresh to play again 🧑‍💻 🤖!</h2>
-
-<script>
-  // Initialization
-  const boxes = Array.from(document.querySelectorAll("td"));
-  const inputs = Array.from(document.querySelectorAll("[type=checkbox]"));
-  const rows = [1, 2, 3].map((n) =>
-    Array.from(document.querySelectorAll(`tr:nth-child(${n}) td`))
-  );
-  const columns = [1, 2, 3].map((n) =>
-    Array.from(document.querySelectorAll(`td:nth-child(${n})`))
-  );
-  const diagonals = [
-    [
-      [1, 1],
-      [2, 2],
-      [3, 3],
-    ],
-    [
-      [3, 1],
-      [2, 2],
-      [1, 3],
-    ],
-  ].map((set) =>
-    set.map(([x, y]) =>
-      document.querySelector(`tr:nth-child(${x}) td:nth-child(${y})`)
-    )
-  );
-  const gameOver = document.querySelector("h2");
-  const HUMAN = "🧑‍💻";
-  const ROBOT = "🤖";
-
-  // Decide who goes first
-  if (Math.random() > 0.5) {
-    runRobotTurn();
-  }
-
-  // Handle when a user clicks an input
-  for (const input of inputs) {
-    input.addEventListener("click", handleClickInput);
-  }
-
-  // The user chose a box, check for win, robot turn, check for win
-  function handleClickInput(evt) {
-    evt.target.closest("td").innerHTML = HUMAN;
-    if (hasWin()) {
-      return endGame();
+    table {
+      margin: 2rem auto;
+      border-collapse: collapse;
     }
-    runRobotTurn();
-    if (hasWin()) {
-      return endGame();
+    td {
+      height: 3rem;
+      width: 3rem;
+      padding: 0;
     }
-  }
-
-  // Choose a random available box
-  function runRobotTurn() {
-    const robotBoxes = shuffle(boxes);
-    while (robotBoxes.length) {
-      const box = robotBoxes.shift();
-      if (box.querySelector("input")) {
-        box.innerHTML = ROBOT;
-        break;
+    td button {
+      height: 100%;
+      width: 100%;
+      font-size: 1.5rem;
+      background: none;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    td button:hover {
+      background: #f0f0f0;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #222;
+        color: #ccc;
+      }
+      td button {
+        border-color: #555;
+        color: #ccc;
+      }
+      td button:hover {
+        background: #333;
       }
     }
-  }
-
-  // Determine win
-  function hasWin() {
-    return (
-      rows.some(hasAllSame) ||
-      columns.some(hasAllSame) ||
-      diagonals.some(hasAllSame)
-    );
-  }
-
-  // Determine if every cell matches
-  function hasAllSame(arr) {
-    return arr.every(
-      (td) => !td.querySelector("input") && td.innerHTML === arr[0].innerHTML
-    );
-  }
-
-  // Display game over, cancel events
-  function endGame() {
-    gameOver.hidden = false;
-    for (const input of inputs) {
-      input.removeEventListener("click", handleClickInput);
-      input.remove();
+    #reset {
+      margin-top: 2rem;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
     }
-  }
+  </style>
+</head>
+<body>
 
-  // Shuffle a copy of the input array
-  function shuffle(array) {
-    array = array.slice(0);
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * i);
-      const temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
+  <h1>Tic Tac Toe</h1>
+
+  <table>
+    <tbody>
+      <tr><td><button></button></td><td><button></button></td><td><button></button></td></tr>
+      <tr><td><button></button></td><td><button></button></td><td><button></button></td></tr>
+      <tr><td><button></button></td><td><button></button></td><td><button></button></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="game-over" hidden>Game over!</h2>
+  <button id="reset" hidden onclick="location.reload()">Play Again</button>
+
+  <script>
+    const HUMAN = "🧑‍💻";
+    const ROBOT = "🤖";
+    const gameOverMessage = document.getElementById("game-over");
+    const resetBtn = document.getElementById("reset");
+    const buttons = Array.from(document.querySelectorAll("td button"));
+    const boxes = Array.from(document.querySelectorAll("td"));
+
+    const getCell = (x, y) => document.querySelector(`tr:nth-child(${x}) td:nth-child(${y})`);
+    
+    const rows = [1, 2, 3].map(n =>
+      Array.from(document.querySelectorAll(`tr:nth-child(${n}) td`))
+    );
+    const columns = [1, 2, 3].map(n =>
+      Array.from(document.querySelectorAll(`td:nth-child(${n})`))
+    );
+    const diagonals = [
+      [[1,1], [2,2], [3,3]],
+      [[1,3], [2,2], [3,1]],
+    ].map(set => set.map(([x, y]) => getCell(x, y)));
+
+    // Randomly decide who starts
+    if (Math.random() > 0.5) runRobotTurn();
+
+    buttons.forEach(button => {
+      button.addEventListener("click", handleClick);
+    });
+
+    function handleClick(e) {
+      const btn = e.target;
+      btn.textContent = HUMAN;
+      btn.disabled = true;
+
+      if (checkWin()) return endGame(`${HUMAN} wins!`);
+      if (isDraw()) return endGame(`It's a draw!`);
+
+      runRobotTurn();
+
+      if (checkWin()) return endGame(`${ROBOT} wins!`);
+      if (isDraw()) return endGame(`It's a draw!`);
     }
-    return array;
-  }
-</script>
+
+    function runRobotTurn() {
+      const available = boxes.filter(td => td.querySelector("button") && !td.querySelector("button").disabled);
+      const shuffled = shuffle(available);
+
+      for (const td of shuffled) {
+        const btn = td.querySelector("button");
+        if (btn) {
+          btn.textContent = ROBOT;
+          btn.disabled = true;
+          break;
+        }
+      }
+    }
+
+    function checkWin() {
+      return [...rows, ...columns, ...diagonals].some(highlightIfWin);
+    }
+
+    function highlightIfWin(cells) {
+      const [first] = cells;
+      const content = first.textContent;
+      const isWin = content && cells.every(td => td.textContent === content);
+
+      if (isWin) {
+        cells.forEach(td => td.style.backgroundColor = "#cfc");
+      }
+
+      return isWin;
+    }
+
+    function isDraw() {
+      return boxes.every(td => {
+        const btn = td.querySelector("button");
+        return btn && btn.disabled;
+      });
+    }
+
+    function endGame(msg) {
+      gameOverMessage.textContent = msg;
+      gameOverMessage.hidden = false;
+      resetBtn.hidden = false;
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    function shuffle(arr) {
+      const array = [...arr];
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+  </script>
+</body>
+</html>
